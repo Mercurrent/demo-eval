@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Use Case</title>
+</head>
+<body>
+    <h1>Create Use Case</h1>
+    <form id="createUseCaseForm">
+        <label for="name">Use Case Name:</label>
+        <input type="text" id="name" name="name" required>
+        <br>
+        <label for="success_criteria">Success Criteria:</label>
+        <textarea id="success_criteria" name="success_criteria"></textarea>
+        <br>
+        <button type="submit">Create</button>
+    </form>
+    <script>
+        document.getElementById('createUseCaseForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            const success_criteria = document.getElementById('success_criteria').value;
+
+            fetch('/create_use_case', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, success_criteria })
+            })
+            .then(response => response.json())
+            .then(data => alert(data.message))
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>

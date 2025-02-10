@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Label File</title>
+</head>
+<body>
+    <h1>Upload Label File</h1>
+    <form id="uploadLabelFileForm" enctype="multipart/form-data">
+        <label for="use_case_name">Use Case Name:</label>
+        <input type="text" id="use_case_name" name="use_case_name" required>
+        <br>
+        <label for="file">Label File:</label>
+        <input type="file" id="file" name="file" required>
+        <br>
+        <button type="submit">Upload</button>
+    </form>
+    <script>
+        document.getElementById('uploadLabelFileForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData();
+            formData.append('use_case_name', document.getElementById('use_case_name').value);
+            formData.append('file', document.getElementById('file').files[0]);
+
+            fetch('/upload_label_file', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => alert(data.message))
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>

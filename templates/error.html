@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Error</title>
+    <style>
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; text-align: center; }
+        .error { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="error">Error</h1>
+        <p>{{ message }}</p>
+        <a href="{{ url_for('list_use_cases') }}">Back to Use Cases</a>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Use Cases</title>
+    <style>
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .use-case-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .use-case-card:hover {
+            background-color: #f5f5f5;
+        }
+        .use-case-card a {
+            text-decoration: none;
+            color: inherit;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Use Cases</h1>
+        
+        {% if use_cases %}
+            {% for use_case in use_cases %}
+                <div class="use-case-card">
+                    <a href="{{ url_for('view_use_case', use_case_name=use_case.name) }}">
+                        <h2>{{ use_case.name }}</h2>
+                        <p>Created: {{ use_case.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                        {% if use_case.success_criteria %}
+                            <p>Success Criteria: {{ use_case.success_criteria }}</p>
+                        {% endif %}
+                    </a>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No use cases found.</p>
+        {% endif %}
+        
+        <div class="actions">
+            <h2>Actions</h2>
+            <a href="{{ url_for('create_use_case_page') }}">
+                <button>Create New Use Case</button>
+            </a>
+        </div>
+    </div>
+</body>
+</html> 

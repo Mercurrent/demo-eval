@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Evaluation Results</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .metrics-card {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background-color: #eceef7;  /* Lightest shade of Blue 072 */
+        }
+        .metrics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .metric-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .metric-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .field-metrics {
+            background-color: #d5d8ee;  /* Light shade of Blue 072 */
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .comparison-table th, .comparison-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .comparison-table th {
+            background-color: #2B3583;  /* Pantone Blue 072 U */
+            color: white;
+            font-weight: bold;
+        }
+        .match { 
+            background-color: #bec3e4;  /* Medium shade of Blue 072 */
+            color: #1a1f4d;
+        }
+        .mismatch { 
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .chart-container {
+            height: 400px;
+            margin: 20px 0;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #007bff;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{{ url_for('view_use_case', use_case_name=use_case.name) }}" class="back-link">← Back to Use Case</a>
+        <h1>Evaluation Results</h1>
+        <h2>Use Case: {{ use_case.name }}</h2>
+        
+        <div class="metrics-grid">
+            {% for set_name, metrics in evaluation.metrics.items() %}
+                <div class="metrics-card">
+                    <div class="metrics-header">
+                        <h3>{{ set_name|title }} Metrics</h3>
+                    </div>
+                    <div class="chart-container" id="{{ set_name }}_chart"></div>
+                    {% for field, field_metrics in metrics.items() %}
+                        <div class="field-metrics">
+                            <h4>{{ field }}</h4>
+                            <div class="metrics-details">
+                                <div>
+                                    <span class="metric-label">Precision:</span>
+                                    <span class="metric-value">{{ "%.1f"|format(field_metrics.precision * 100) }}%</span>
+                                </div>
+                                <div>
+                                    <span class="metric-label">Recall:</span>
+                                    <span class="metric-value">{{ "%.1f"|format(field_metrics.recall * 100) }}%</span>
+                                </div>
+                                <div>
+                                    <span class="metric-label">F1 Score:</span>
+                                    <span class="metric-value">{{ "%.1f"|format(field_metrics.f1_score * 100) }}%</span>
+                                </div>
+                                <div>
+                                    <span class="metric-label">True Positives:</span>
+                                    <span class="metric-value">{{ field_metrics.true_positives }}</span>
+                                </div>
+                                <div>
+                                    <span class="metric-label">False Positives:</span>
+                                    <span class="metric-value">{{ field_metrics.false_positives }}</span>
+                                </div>
+                                <div>
+                                    <span class="metric-label">False Negatives:</span>
+                                    <span class="metric-value">{{ field_metrics.false_negatives }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="metrics-card">
+            <h3>Test Set Comparison</h3>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Document ID</th>
+                        {% for field in test_set_labels[0].keys() if field != 'document_id' %}
+                            <th>{{ field }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for label in test_set_labels %}
+                        {% set result = test_set_results|selectattr('document_id', 'equalto', label.document_id)|first %}
+                        <tr>
+                            <td>{{ label.document_id }}</td>
+                            {% for field, value in label.items() if field != 'document_id' %}
+                                <td class="{{ 'match' if result[field] == value else 'mismatch' }}">
+                                    <div>Label: {{ value }}</div>
+                                    <div>Result: {{ result[field] }}</div>
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        {% for set_name, metrics in evaluation.metrics.items() %}
+            var {{ set_name }}_data = [];
+            {% for field, field_metrics in metrics.items() %}
+                {{ set_name }}_data.push({
+                    x: ['Precision', 'Recall', 'F1 Score'],
+                    y: [
+                        {{ field_metrics.precision * 100 }},
+                        {{ field_metrics.recall * 100 }},
+                        {{ field_metrics.f1_score * 100 }}
+                    ],
+                    name: '{{ field }}',
+                    type: 'bar'
+                });
+            {% endfor %}
+            
+            var layout = {
+                title: '{{ set_name|title }} Metrics',
+                yaxis: {
+                    title: 'Percentage',
+                    range: [0, 100]
+                },
+                barmode: 'group',
+                height: 350
+            };
+            
+            Plotly.newPlot('{{ set_name }}_chart', {{ set_name }}_data, layout);
+        {% endfor %}
+    </script>
+</body>
+</html> 
