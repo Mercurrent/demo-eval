@@ -1,6 +1,6 @@
 # Evaluation Web-Service
 
-This project is an evaluation web-service where data scientists can upload results of their model runs, upload and form test datasets, and run evaluations against them. The project uses Flask for the web server and MongoDB for storage.
+This project is an evaluation web-service where data scientists can upload results of their model runs, upload and form test datasets, and run evaluations against them. The project uses Flask for the web server and supports both MongoDB and Azure Cosmos DB for storage.
 
 ## Features
 
@@ -13,7 +13,8 @@ This project is an evaluation web-service where data scientists can upload resul
 ## Prerequisites
 
 - Python 3.x
-- MongoDB
+- MongoDB or Azure Cosmos DB Emulator
+- Poetry (for dependency management)
 
 ## Installation
 
@@ -23,41 +24,37 @@ This project is an evaluation web-service where data scientists can upload resul
    cd Demo-LSEG
    ```
 
-2. **Install the required dependencies**:
+2. **Install dependencies using Poetry**:
    ```sh
-   pip install -r requirements.txt
+   poetry install
    ```
 
-3. **Start the MongoDB server**:
-   Ensure MongoDB is installed and running on your system.
+3. **Configure Database Connection**:
+   Create a `.env` file in the project root with your database connection string:
+   ```
+   # For MongoDB
+   DB_CONNECTION_STRING=mongodb://localhost:27017/
 
-   For Mac:
+   # For Cosmos DB Emulator
+   DB_CONNECTION_STRING=mongodb://localhost:C2y6yDjf5%2FR%2Bob0N8A7Cgv30VRDJIWEHLM%2B4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw%2FJw%3D%3D@localhost:10255/admin?ssl=true
+   ```
 
+4. **Start your database**:
+   Either start MongoDB:
    ```sh
-   brew tap mongodb/brew
-   brew install mongodb-community
-
    brew services start mongodb-community
    ```
+   Or start the Cosmos DB Emulator from the Azure portal
 
-4. **Run the Flask application**:
-
+5. **Run the Flask application**:
    ```sh
-   export FLASK_APP=app.py
-   export FLASK_ENV=development
-   flask run
-   ```
-
-   Alternatively, you can run the application directly using Python:
-
-   ```sh
-   python app.py
+   poetry run flask run
    ```
 
 ## Usage
 
 1. **Access the application**:
-   Open your web browser and navigate to `http://127.0.0.1:5000/` to access the home page of the evaluation web-service.
+   Open your web browser and navigate to `http://127.0.0.1:5000/use_cases`
 
 2. **Create a new use case**:
    - Navigate to `http://127.0.0.1:5000/create_use_case.html`
@@ -74,7 +71,8 @@ This project is an evaluation web-service where data scientists can upload resul
 ## Project Structure
 
 - `app.py`: The main Flask application file
-- `requirements.txt`: List of required Python packages
+- `pyproject.toml`: Poetry dependencies and project configuration
+- `.env`: Database configuration (not in version control)
 - `templates/`: Directory containing HTML templates
   - `index.html`: Home page
   - `create_use_case.html`: Page for creating a new use case

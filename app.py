@@ -7,18 +7,33 @@ import random
 import json
 from bson import ObjectId
 from metrics import calculate_metrics, detect_column_type
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Ensure the uploads directory exists
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
-# Database connection
+# Update database connection
 def get_db_connection():
-    client = MongoClient('mongodb://localhost:27017/')
+    """Connect to Cosmos DB emulator using MongoDB API"""
+    connection_string = os.getenv('DB_CONNECTION_STRING', 'mongodb://localhost:27017/')
+    client = MongoClient(connection_string)
+    
+    # Create database if it doesn't exist
     db = client['evaluation_db']
+    
+    # Create collections if they don't exist
+    collections = ['use_cases', 'label_files', 'evaluation_sets', 'extraction_results', 'evaluation_iterations']
+    for collection in collections:
+        if collection not in db.list_collection_names():
+            db.create_collection(collection)
+    
     return db
 
 def split_csv_rows(file_path):
@@ -233,18 +248,18 @@ def view_use_case(use_case_name):
     """Display use case details and associated label files"""
     try:
         db = get_db_connection()
-        use_cases = db.use_cases
         
-        # Find the use case
-        use_case = use_cases.find_one({'name': use_case_name})
+        # Find the use case - use _id for partitioning
+        use_case = db.use_cases.find_one({
+            'name': use_case_name
+        })
         if not use_case:
             return render_template('error.html', message='Use case not found'), 404
 
-        # Get only the latest label file
-        label_files = db.label_files
-        latest_file = label_files.find_one(
+        # Get only the latest label file - use composite index
+        latest_file = db.label_files.find_one(
             {'use_case_id': use_case['_id']},
-            sort=[('uploaded_at', -1)]
+            sort=[('_ts', -1)]  # Use _ts instead of uploaded_at for Cosmos DB
         )
         
         associated_files = [latest_file] if latest_file else []
@@ -459,4 +474,4 @@ def view_evaluation(evaluation_iteration_id):
         return render_template('error.html', message=str(e)), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
