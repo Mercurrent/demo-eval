@@ -20,8 +20,8 @@ This project is an evaluation web-service where data scientists can upload resul
 
 1. **Clone the repository**:
    ```sh
-   git clone https://github.com/yourusername/Demo-LSEG.git
-   cd Demo-LSEG
+   git clone https://gitlab.dx1.lseg.com/app/app-52495/extraction-evaluation.git
+   cd extraction-evaluation
    ```
 
 2. **Install dependencies using Poetry**:
@@ -79,6 +79,3 @@ This project is an evaluation web-service where data scientists can upload resul
   - `upload_label_file.html`: Page for uploading a label file
   - `view_report.html`: Page for viewing an evaluation report
 
-## License
-
-This project is licensed under the MIT License.
