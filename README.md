@@ -46,9 +46,9 @@ This project is an evaluation web-service where data scientists can upload resul
    ```
    Or start the Cosmos DB Emulator from the Azure portal
 
-5. **Run the Flask application**:
+5. **Run the FastAPI application**:
    ```sh
-   poetry run flask run
+   poetry run uvicorn app:app --reload
    ```
 
 ## Usage

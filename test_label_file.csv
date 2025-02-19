@@ -1,6 +1,0 @@
-row_id,document_id,Officer Name Prefix,Officer First Name,Officer Middle Name,Officer Last Name,Officer Name Suffix,Person Gender,Officer Citizenship,Officer Age,Officer Year of Birth,Position Description,Position Start Date,Position End Date
-1,doc001,Mr.,John,A.,Doe,Jr.,Male,USA,45,1976,Manager,2020-01-01,2021-01-01
-2,doc002,Ms.,Jane,B.,Smith,,Female,Canada,38,1983,Engineer,2019-05-15,2020-05-15
-3,doc003,Dr.,Alice,C.,Johnson,PhD,Female,UK,50,1971,Director,2018-03-10,2021-03-10
-4,doc004,Mr.,Bob,D.,Brown,,Male,Australia,30,1991,Analyst,2021-06-01,2022-06-01
-5,doc005,Mrs.,Emily,E.,Davis,,Female,India,28,1993,Consultant,2020-09-20,2021-09-20

@@ -7,7 +7,7 @@
 </head>
 <body>
     <h1>Create Use Case</h1>
-    <form id="createUseCaseForm">
+    <form id="create-use-case-form">
         <label for="name">Use Case Name:</label>
         <input type="text" id="name" name="name" required>
         <br>
@@ -17,22 +17,37 @@
         <button type="submit">Create</button>
     </form>
     <script>
-        document.getElementById('createUseCaseForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const name = document.getElementById('name').value;
-            const success_criteria = document.getElementById('success_criteria').value;
+        document.getElementById('create-use-case-form').onsubmit = async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                success_criteria: document.getElementById('success_criteria').value
+            };
 
-            fetch('/create_use_case', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ name, success_criteria })
-            })
-            .then(response => response.json())
-            .then(data => alert(data.message))
-            .catch(error => console.error('Error:', error));
-        });
+            try {
+                const response = await fetch('/create_use_case', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Success - redirect to use cases list
+                    window.location.href = '/use_cases';
+                } else {
+                    // Show error message from server
+                    alert(data.detail || 'Error creating use case');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error creating use case: ' + error.message);
+            }
+        };
     </script>
 </body>
 </html>

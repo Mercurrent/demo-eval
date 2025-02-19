@@ -2,9 +2,9 @@
     {
         "row_id": 1,
         "document_id": "doc001",
-        "Officer Name Prefix": "Mr.",
+        "Officer Name Prefix": "Mr",
         "Officer First Name": "John",
-        "Officer Middle Name": "A.",
+        "Officer Middle Name": "Aa.",
         "Officer Last Name": "Doe",
         "Officer Name Suffix": "Jr.",
         "Person Gender": "Male",
@@ -51,7 +51,7 @@
         "row_id": 4,
         "document_id": "doc004",
         "Officer Name Prefix": "Mr.",
-        "Officer First Name": "Bob",
+        "Officer First Name": "Bobb",
         "Officer Middle Name": "D.",
         "Officer Last Name": "Brown",
         "Officer Name Suffix": "",
@@ -67,9 +67,9 @@
         "row_id": 5,
         "document_id": "doc005",
         "Officer Name Prefix": "Mrs.",
-        "Officer First Name": "Emilly",  // Typo
+        "Officer First Name": "Emilly",
         "Officer Middle Name": "E.",
-        "Officer Last Name": "Daviss",  // Typo
+        "Officer Last Name": "Daviss",
         "Officer Name Suffix": "",
         "Person Gender": "Female",
         "Officer Citizenship": "India",
@@ -78,21 +78,5 @@
         "Position Description": "Consultant",
         "Position Start Date": "2020-09-20",
         "Position End Date": "2021-09-20"
-    },
-    {
-        "row_id": 6,
-        "document_id": "doc006",
-        "Officer Name Prefix": "Prof.",
-        "Officer First Name": "Michael",
-        "Officer Middle Name": "F.",
-        "Officer Last Name": "Green",
-        "Officer Name Suffix": "",
-        "Person Gender": "Male",
-        "Officer Citizenship": "Germany",
-        "Officer Age": 60,
-        "Officer Year of Birth": 1961,
-        "Position Description": "Senior Consultant",
-        "Position Start Date": "2015-01-01",
-        "Position End Date": "2020-01-01"
     }
 ]

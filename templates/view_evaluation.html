@@ -77,113 +77,308 @@
         .back-link:hover {
             text-decoration: underline;
         }
+        .overview-chart {
+            width: 100%;
+            height: 400px;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .chart-controls {
+            margin: 20px 0;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 4px;
+        }
+        
+        .chart-controls select {
+            padding: 5px;
+            margin-right: 10px;
+        }
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .metrics-table th, .metrics-table td {
+            padding: 8px 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        .metrics-table th {
+            background-color: #2B3583;
+            color: white;
+            font-weight: 500;
+        }
+
+        .metrics-table .set-name {
+            background-color: #eceef7;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        .metrics-table .set-start {
+            border-top: 2px solid #2B3583;
+        }
+
+        .metrics-table .metric-value {
+            font-weight: 500;
+            background-color: #f8f9fc;
+        }
+
+        .metrics-table .count-value {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        /* Make the field column left-aligned */
+        .metrics-table td:nth-child(2) {
+            text-align: left;
+        }
+
+        /* Highlight good metrics */
+        .metrics-table td.metric-value:hover {
+            background-color: #eceef7;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        .evaluation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <a href="{{ url_for('view_use_case', use_case_name=use_case.name) }}" class="back-link">← Back to Use Case</a>
-        <h1>Evaluation Results</h1>
-        <h2>Use Case: {{ use_case.name }}</h2>
-        
-        <div class="metrics-grid">
-            {% for set_name, metrics in evaluation.metrics.items() %}
-                <div class="metrics-card">
-                    <div class="metrics-header">
-                        <h3>{{ set_name|title }} Metrics</h3>
-                    </div>
-                    <div class="chart-container" id="{{ set_name }}_chart"></div>
-                    {% for field, field_metrics in metrics.items() %}
-                        <div class="field-metrics">
-                            <h4>{{ field }}</h4>
-                            <div class="metrics-details">
-                                <div>
-                                    <span class="metric-label">Precision:</span>
-                                    <span class="metric-value">{{ "%.1f"|format(field_metrics.precision * 100) }}%</span>
-                                </div>
-                                <div>
-                                    <span class="metric-label">Recall:</span>
-                                    <span class="metric-value">{{ "%.1f"|format(field_metrics.recall * 100) }}%</span>
-                                </div>
-                                <div>
-                                    <span class="metric-label">F1 Score:</span>
-                                    <span class="metric-value">{{ "%.1f"|format(field_metrics.f1_score * 100) }}%</span>
-                                </div>
-                                <div>
-                                    <span class="metric-label">True Positives:</span>
-                                    <span class="metric-value">{{ field_metrics.true_positives }}</span>
-                                </div>
-                                <div>
-                                    <span class="metric-label">False Positives:</span>
-                                    <span class="metric-value">{{ field_metrics.false_positives }}</span>
-                                </div>
-                                <div>
-                                    <span class="metric-label">False Negatives:</span>
-                                    <span class="metric-value">{{ field_metrics.false_negatives }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endfor %}
+        <div class="evaluation-header">
+            <h1>Evaluation Results</h1>
+            <button onclick="deleteEvaluation('{{ evaluation._id }}')" class="btn btn-danger">Delete Evaluation</button>
         </div>
-
-        <div class="metrics-card">
-            <h3>Test Set Comparison</h3>
-            <table class="comparison-table">
-                <thead>
-                    <tr>
-                        <th>Document ID</th>
-                        {% for field in test_set_labels[0].keys() if field != 'document_id' %}
-                            <th>{{ field }}</th>
+        
+        {% if evaluation and use_case %}
+            <h2>Use Case: {{ use_case.name }}</h2>
+            
+            <div class="metrics-card">
+                <h3>Performance Overview</h3>
+                <div class="chart-controls">
+                    <select id="metricSelector">
+                        <option value="all">All Metrics</option>
+                        <option value="precision">Precision</option>
+                        <option value="recall">Recall</option>
+                        <option value="f1">F1 Score</option>
+                    </select>
+                    <select id="setSelector">
+                        <option value="all">All Sets</option>
+                        {% for set_name in evaluation.metrics.keys() %}
+                            <option value="{{ set_name }}">{{ set_name|title }}</option>
                         {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for label in test_set_labels %}
-                        {% set result = test_set_results|selectattr('document_id', 'equalto', label.document_id)|first %}
+                    </select>
+                </div>
+                <div id="overviewChart" class="overview-chart"></div>
+            </div>
+
+            <div class="metrics-card">
+                <h3>Metrics Summary</h3>
+                <table class="metrics-table">
+                    <thead>
                         <tr>
-                            <td>{{ label.document_id }}</td>
-                            {% for field, value in label.items() if field != 'document_id' %}
-                                <td class="{{ 'match' if result[field] == value else 'mismatch' }}">
-                                    <div>Label: {{ value }}</div>
-                                    <div>Result: {{ result[field] }}</div>
-                                </td>
+                            <th>Set</th>
+                            <th>Field</th>
+                            <th>Precision</th>
+                            <th>Recall</th>
+                            <th>F1 Score</th>
+                            <th>True Pos.</th>
+                            <th>False Pos.</th>
+                            <th>False Neg.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for set_name, metrics in evaluation.metrics.items() %}
+                            {% set non_row_id_metrics = {} %}
+                            {% for field, field_metrics in metrics.items() %}
+                                {% if field != 'row_id' %}
+                                    {% set _ = non_row_id_metrics.update({field: field_metrics}) %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% for field, field_metrics in non_row_id_metrics.items() %}
+                                <tr class="{{ loop.first and 'set-start' }}">
+                                    {% if loop.first %}
+                                        <td rowspan="{{ non_row_id_metrics|length }}" class="set-name">
+                                            {{ set_name|title }}
+                                        </td>
+                                    {% endif %}
+                                    <td>{{ field }}</td>
+                                    <td class="metric-value">{{ "%.2f"|format(field_metrics.precision * 100) }}%</td>
+                                    <td class="metric-value">{{ "%.2f"|format(field_metrics.recall * 100) }}%</td>
+                                    <td class="metric-value">{{ "%.2f"|format(field_metrics.f1_score * 100) }}%</td>
+                                    <td class="count-value">{{ field_metrics.true_positives }}</td>
+                                    <td class="count-value">{{ field_metrics.false_positives }}</td>
+                                    <td class="count-value">{{ field_metrics.false_negatives }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3>Test Set Comparison</h3>
+            {% if test_set_labels and test_set_results %}
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Document ID</th>
+                            {% if test_set_labels[0].get('row_id') %}
+                                <th>Row ID</th>
+                            {% endif %}
+                            {% for field in test_set_labels[0].keys() if field not in ['document_id', 'row_id'] %}
+                                <th>{{ field }}</th>
                             {% endfor %}
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        {% for label in test_set_labels %}
+                            {% set result = test_set_results|selectattr('document_id', 'equalto', label.document_id)|first %}
+                            <tr>
+                                <td>{{ label.document_id }}</td>
+                                {% if label.get('row_id') %}
+                                    <td>{{ label.row_id }}</td>
+                                {% endif %}
+                                {% for field, value in label.items() if field not in ['document_id', 'row_id'] %}
+                                    <td class="{{ 'match' if result[field] == value else 'mismatch' }}">
+                                        <div>Label: {{ value }}</div>
+                                        <div>Result: {{ result[field] }}</div>
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        {% else %}
+            <p>Error: Missing evaluation data</p>
+        {% endif %}
     </div>
 
     <script>
-        {% for set_name, metrics in evaluation.metrics.items() %}
-            var {{ set_name }}_data = [];
-            {% for field, field_metrics in metrics.items() %}
-                {{ set_name }}_data.push({
-                    x: ['Precision', 'Recall', 'F1 Score'],
-                    y: [
-                        {{ field_metrics.precision * 100 }},
-                        {{ field_metrics.recall * 100 }},
-                        {{ field_metrics.f1_score * 100 }}
-                    ],
-                    name: '{{ field }}',
-                    type: 'bar'
-                });
+        // Prepare data for the overview chart
+        const metricsData = {
+            {% for set_name, metrics in evaluation.metrics.items() %}
+                '{{ set_name }}': {
+                    {% for field, field_metrics in metrics.items() %}
+                        '{{ field }}': {
+                            precision: {{ field_metrics.precision * 100 }},
+                            recall: {{ field_metrics.recall * 100 }},
+                            f1_score: {{ field_metrics.f1_score * 100 }}
+                        },
+                    {% endfor %}
+                },
             {% endfor %}
+        };
+
+        function updateChart(selectedMetric = 'all', selectedSet = 'all') {
+            const data = [];
+            const sets = selectedSet === 'all' ? Object.keys(metricsData) : [selectedSet];
             
-            var layout = {
-                title: '{{ set_name|title }} Metrics',
+            sets.forEach(setName => {
+                const fields = Object.keys(metricsData[setName]);
+                
+                if (selectedMetric === 'all') {
+                    // Create traces for each metric
+                    ['precision', 'recall', 'f1_score'].forEach(metric => {
+                        data.push({
+                            x: fields,
+                            y: fields.map(field => metricsData[setName][field][metric]),
+                            name: `${setName} - ${metric}`,
+                            type: 'bar'
+                        });
+                    });
+                } else {
+                    // Create trace for selected metric
+                    data.push({
+                        x: fields,
+                        y: fields.map(field => metricsData[setName][field][selectedMetric]),
+                        name: setName,
+                        type: 'bar'
+                    });
+                }
+            });
+
+            const layout = {
+                title: 'Performance Metrics Overview',
+                barmode: 'group',
                 yaxis: {
                     title: 'Percentage',
                     range: [0, 100]
                 },
-                barmode: 'group',
-                height: 350
+                xaxis: {
+                    title: 'Fields'
+                },
+                showlegend: true,
+                legend: {
+                    orientation: 'h',
+                    y: -0.2
+                },
+                height: 400
             };
+
+            Plotly.newPlot('overviewChart', data, layout);
+        }
+
+        // Add event listeners for selectors
+        document.getElementById('metricSelector').addEventListener('change', (e) => {
+            updateChart(e.target.value, document.getElementById('setSelector').value);
+        });
+
+        document.getElementById('setSelector').addEventListener('change', (e) => {
+            updateChart(document.getElementById('metricSelector').value, e.target.value);
+        });
+
+        // Initialize chart
+        updateChart();
+
+        async function deleteEvaluation(evaluationId) {
+            if (!confirm('Are you sure you want to delete this evaluation?')) {
+                return;
+            }
             
-            Plotly.newPlot('{{ set_name }}_chart', {{ set_name }}_data, layout);
-        {% endfor %}
+            try {
+                const response = await fetch(`/evaluation/${evaluationId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    // Redirect back to use case view
+                    window.location.href = document.referrer;
+                } else {
+                    const data = await response.json();
+                    alert(data.detail || 'Error deleting evaluation');
+                }
+            } catch (error) {
+                alert('Error deleting evaluation: ' + error.message);
+            }
+        }
     </script>
 </body>
 </html> 
